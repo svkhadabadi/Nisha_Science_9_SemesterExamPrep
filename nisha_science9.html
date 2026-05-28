@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nisha's Science 9 Studio 🔬</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F7F3FF; --card: #fff; --text: #2D2344; --muted: #7B6F8A;
+  --ch7: #5F27CD; --ch8: #FF6FA0;
+}
+body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+.app-header {
+  background: linear-gradient(135deg, #5F27CD 0%, #FF6FA0 50%, #FF9F43 100%);
+  padding: 20px 24px 16px; text-align: center;
+}
+.app-header h1 { font-family: 'Fredoka One', cursive; font-size: 26px; color: #fff; text-shadow: 2px 3px 0 rgba(0,0,0,.15); }
+.app-header p { color: rgba(255,255,255,.9); font-size: 12px; margin-top: 4px; font-weight: 700; }
+
+.tabs { display: flex; background: #fff; border-bottom: 2px solid #EDE7FF; padding: 0 8px; overflow-x: auto; }
+.tab-btn {
+  font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800;
+  padding: 11px 13px; border: none; background: none; color: var(--muted);
+  cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all .2s;
+}
+.tab-btn.active { color: var(--ch7); border-bottom-color: var(--ch7); }
+
+.chapter-nav { display: flex; gap: 7px; padding: 12px 16px 6px; flex-wrap: wrap; }
+.ch-btn {
+  font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800;
+  padding: 6px 12px; border-radius: 50px; border: 2.5px solid; cursor: pointer;
+  transition: all .2s; white-space: nowrap;
+}
+.main { padding: 10px 16px 28px; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* FLASHCARD */
+.fc-area { perspective: 1000px; margin: 8px 0 14px; }
+.fc-inner {
+  position: relative; width: 100%; min-height: 220px;
+  transform-style: preserve-3d; transition: transform .55s cubic-bezier(.4,2,.6,1); cursor: pointer;
+}
+.fc-inner.flipped { transform: rotateY(180deg); }
+.fc-front, .fc-back {
+  position: absolute; inset: 0; border-radius: 18px; backface-visibility: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 22px 20px; text-align: center; min-height: 220px;
+}
+.fc-front { background: var(--card); border: 2.5px solid #EDE7FF; box-shadow: 0 4px 20px rgba(95,39,205,.10); }
+.fc-back { transform: rotateY(180deg); color: #fff; }
+.card-label { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; opacity: .7; }
+.card-term { font-size: 20px; font-weight: 900; line-height: 1.3; }
+.card-def { font-size: 13px; line-height: 1.65; font-weight: 600; }
+.flip-hint { font-size: 11px; color: var(--muted); margin-top: 10px; font-weight: 700; }
+.card-emoji { font-size: 30px; margin-bottom: 8px; }
+.card-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; }
+.ctrl-btn {
+  font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;
+  padding: 9px 20px; border-radius: 50px; border: 2px solid; cursor: pointer; transition: all .15s;
+}
+.ctrl-btn:active { transform: scale(.95); }
+.btn-prev { background: #fff; border-color: #DDD6F3; color: var(--ch7); }
+.btn-next { background: var(--ch7); border-color: var(--ch7); color: #fff; }
+.card-counter { font-size: 13px; font-weight: 800; color: var(--muted); background: #fff; padding: 8px 16px; border-radius: 50px; border: 2px solid #EDE7FF; }
+.prog-wrap { margin: 6px 0 12px; }
+.prog-bar { height: 8px; border-radius: 10px; background: #EDE7FF; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 10px; transition: width .4s ease; background: linear-gradient(90deg, var(--ch7), var(--ch8)); }
+.ch-title { font-family: 'Fredoka One', cursive; font-size: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ch-badge { display: inline-block; padding: 3px 12px; border-radius: 50px; font-size: 12px; font-family: 'Nunito', sans-serif; font-weight: 800; }
+.stars { display: flex; gap: 6px; justify-content: center; margin-top: 12px; align-items: center; }
+.star-btn { font-size: 22px; background: none; border: none; cursor: pointer; transition: transform .15s; }
+.star-btn:hover { transform: scale(1.3); }
+.star-label { font-size: 12px; font-weight: 800; color: var(--muted); }
+
+/* QUIZ */
+.score-bar { background: var(--card); border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border: 2px solid #EDE7FF; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+.score-label { font-size: 12px; font-weight: 800; color: var(--muted); }
+.score-num { font-family: 'Fredoka One', cursive; font-size: 22px; color: var(--ch7); }
+.reset-btn { font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800; padding: 7px 16px; border-radius: 50px; border: 2px solid var(--ch8); background: #FFE8F2; color: #C0305A; cursor: pointer; transition: all .15s; }
+.reset-btn:hover { background: var(--ch8); color: #fff; }
+.q-card { background: var(--card); border-radius: 16px; border: 2px solid #EDE7FF; padding: 16px; margin-bottom: 12px; box-shadow: 0 3px 14px rgba(95,39,205,.08); }
+.q-num { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+.q-text { font-size: 15px; font-weight: 700; line-height: 1.5; margin-bottom: 12px; }
+.q-opts { display: flex; flex-direction: column; gap: 7px; }
+.q-opt { font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; padding: 9px 12px; border-radius: 12px; border: 2px solid #EDE7FF; background: #fff; cursor: pointer; text-align: left; transition: all .15s; display: flex; align-items: center; gap: 9px; }
+.q-opt:hover:not(:disabled) { border-color: var(--ch7); background: #EDE7FF; }
+.q-opt.correct { border-color: #1DD1A1; background: #E0FFF7; color: #0D9E77; }
+.q-opt.wrong { border-color: #FF6B6B; background: #FFE5E5; color: #C0392B; }
+.q-opt:disabled { cursor: default; }
+.opt-letter { width: 25px; height: 25px; border-radius: 50%; background: #EDE7FF; color: var(--ch7); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; flex-shrink: 0; }
+.q-opt.correct .opt-letter { background: #1DD1A1; color: #fff; }
+.q-opt.wrong .opt-letter { background: #FF6B6B; color: #fff; }
+.q-exp { display: none; margin-top: 10px; padding: 10px 12px; background: #F7F3FF; border-radius: 10px; font-size: 12px; font-weight: 600; line-height: 1.6; border-left: 4px solid var(--ch7); color: #3D1A8A; }
+.q-exp.show { display: block; }
+.exp-label { font-weight: 900; font-size: 11px; margin-bottom: 4px; color: var(--ch7); }
+
+/* SHORT ANSWER */
+.sa-card { background: var(--card); border-radius: 16px; border: 2px solid #EDE7FF; padding: 16px; margin-bottom: 14px; box-shadow: 0 3px 14px rgba(95,39,205,.08); }
+.sa-q-num { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
+.sa-marks { display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 10px; border-radius: 50px; margin-left: 8px; background: #EDE7FF; color: var(--ch7); }
+.sa-question { font-size: 15px; font-weight: 700; line-height: 1.5; margin-bottom: 12px; }
+.sa-textarea {
+  width: 100%; min-height: 80px; border-radius: 12px; border: 2px solid #EDE7FF;
+  padding: 10px 12px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 600;
+  color: var(--text); background: #FAFAFA; resize: vertical; outline: none; transition: border .2s;
+}
+.sa-textarea:focus { border-color: var(--ch7); background: #fff; }
+.sa-btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.sa-reveal-btn {
+  font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800;
+  padding: 8px 16px; border-radius: 50px; border: 2px solid; cursor: pointer; transition: all .15s;
+}
+.sa-reveal-btn:active { transform: scale(.95); }
+.sa-answer { display: none; margin-top: 12px; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.7; font-weight: 600; }
+.sa-answer.show { display: block; }
+.sa-answer-label { font-size: 11px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.sa-hint { display: none; margin-top: 8px; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; background: #FFF3E0; border-left: 4px solid #FF9F43; color: #E67E22; }
+.sa-hint.show { display: block; }
+.sa-score-row { display: flex; gap: 8px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+.sa-score-label { font-size: 12px; font-weight: 800; color: var(--muted); }
+.sa-self-btn {
+  font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800;
+  padding: 6px 14px; border-radius: 50px; border: 2px solid; cursor: pointer; transition: all .15s;
+}
+
+/* SUMMARY */
+.sum-card { background: var(--card); border-radius: 16px; padding: 18px; margin-bottom: 14px; box-shadow: 0 3px 14px rgba(95,39,205,.08); }
+.sum-title { font-family: 'Fredoka One', cursive; font-size: 20px; margin-bottom: 12px; }
+.sum-body { font-size: 13px; line-height: 1.9; }
+.term-grid { display: grid; gap: 7px; margin-top: 14px; }
+.term-row { border-radius: 10px; padding: 9px 12px; border-left: 4px solid; }
+.term-name { font-weight: 800; font-size: 13px; }
+.term-def { font-size: 12px; font-weight: 600; color: var(--text); }
+
+@keyframes pop { 0%{transform:scale(.7);opacity:0} 70%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
+.pop { animation: pop .35s ease both; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-thumb { background: #DDD6F3; border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>🔬 Nisha's Science 9 Studio ✨</h1>
+  <p>Oxford Science 9 · Australian Curriculum · Helen Silvester · 2nd Ed</p>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('flashcards',this)">🃏 Flashcards</button>
+  <button class="tab-btn" onclick="switchTab('practice',this)">📝 MCQ Quiz</button>
+  <button class="tab-btn" onclick="switchTab('shortanswer',this)">✏️ Short Answer</button>
+  <button class="tab-btn" onclick="switchTab('summary',this)">📖 Summary</button>
+</div>
+
+<!-- FLASHCARDS -->
+<div id="tab-flashcards" class="section active">
+  <div class="chapter-nav" id="fc-nav"></div>
+  <div class="main">
+    <div class="ch-title" id="fc-ch-title"></div>
+    <div class="prog-wrap"><div class="prog-bar"><div class="prog-fill" id="fc-prog" style="width:0%"></div></div></div>
+    <div class="fc-area">
+      <div class="fc-inner" id="fc-card" onclick="flipCard()">
+        <div class="fc-front">
+          <div class="card-emoji" id="fc-emoji">🔬</div>
+          <div class="card-label">Term</div>
+          <div class="card-term" id="fc-term">Pick a chapter above!</div>
+          <div class="flip-hint">👆 Tap to reveal definition</div>
+        </div>
+        <div class="fc-back" id="fc-back" style="background:linear-gradient(135deg,#5F27CD,#FF6FA0)">
+          <div class="card-label" style="opacity:.8">Definition</div>
+          <div class="card-def" id="fc-def">Definition appears here.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-controls">
+      <button class="ctrl-btn btn-prev" onclick="prevCard()">← Prev</button>
+      <span class="card-counter" id="fc-counter">0 / 0</span>
+      <button class="ctrl-btn btn-next" onclick="nextCard()">Next →</button>
+    </div>
+    <div class="stars">
+      <span class="star-label">Rate:</span>
+      <button class="star-btn" onclick="rateCard(1)">😓</button>
+      <button class="star-btn" onclick="rateCard(2)">🤔</button>
+      <button class="star-btn" onclick="rateCard(3)">😊</button>
+      <button class="star-btn" onclick="rateCard(4)">🌟</button>
+    </div>
+  </div>
+</div>
+
+<!-- MCQ QUIZ -->
+<div id="tab-practice" class="section">
+  <div class="chapter-nav" id="pq-nav"></div>
+  <div class="main">
+    <div class="score-bar">
+      <div><div class="score-label">Score</div><div class="score-num" id="pq-score">0 / 0</div></div>
+      <div><div class="score-label">✅ Correct</div><div class="score-num" id="pq-correct" style="color:#0D9E77">0</div></div>
+      <button class="reset-btn" onclick="resetQuiz()">🔄 Reset</button>
+    </div>
+    <div id="pq-container"></div>
+  </div>
+</div>
+
+<!-- SHORT ANSWER -->
+<div id="tab-shortanswer" class="section">
+  <div class="chapter-nav" id="sa-nav"></div>
+  <div class="main">
+    <div id="sa-container"></div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div id="tab-summary" class="section">
+  <div class="chapter-nav" id="sum-nav"></div>
+  <div class="main" id="sum-content"></div>
+</div>
+
+<script>
+const DATA = [
+  {
+    id:1, emoji:'🧪', short:'Ch 1: Toolkit',
+    title:'Chapter 1: Science Toolkit',
+    color:'#FF6B6B', light:'#FFE5E5', dark:'#C0392B',
+    grad:'linear-gradient(135deg,#FF6B6B,#FF9F43)',
+    cards:[
+      {t:'Scientific method',d:'A systematic process: Observation → Question → Hypothesis → Experiment → Results → Conclusion → Communication.'},
+      {t:'Hypothesis',d:'A testable, specific prediction written as "If… then… because…" It must be able to be tested by an experiment.'},
+      {t:'Independent variable',d:'The variable deliberately changed by the scientist. Only ONE should be changed per experiment. Also called the manipulated variable.'},
+      {t:'Dependent variable',d:'The variable that is measured or observed. It responds to changes in the independent variable.'},
+      {t:'Controlled variables',d:'All variables kept the same throughout the experiment to ensure a fair test. These must NOT change.'},
+      {t:'Control experiment',d:'A trial run under normal conditions with no changes made. Provides a baseline for comparison with experimental results.'},
+      {t:'Accuracy',d:'How close a measurement is to the true or accepted value. Poor accuracy often caused by systematic errors.'},
+      {t:'Precision',d:'How closely repeated measurements agree with each other. Precise results are consistent but may not be accurate.'},
+      {t:'Reliability',d:'The extent to which an experiment gives consistent results when repeated. Improved by repeating trials and averaging.'},
+      {t:'Validity',d:'Whether the experiment actually tests what it intends to test. Valid experiments control all variables except the independent one.'},
+      {t:'Qualitative data',d:'Descriptive, non-numerical data observed with the senses (e.g. colour change, smell, texture).'},
+      {t:'Quantitative data',d:'Numerical, measurable data (e.g. mass in grams, temperature in °C, time in seconds).'},
+      {t:'SI units',d:'International System of Units — global standard for science. E.g. metres (m), kilograms (kg), seconds (s), kelvin (K).'},
+      {t:'Mean (average)',d:'Sum of all values divided by the number of values. Used to summarise a dataset and improve reliability.'},
+      {t:'Anomalous result',d:'A data point that does not fit the pattern. Usually caused by experimental error — investigated and excluded from averages.'},
+      {t:'Line of best fit',d:'A smooth line drawn through a scatter plot representing the trend of the data. Does not need to pass through all points.'},
+      {t:'Bar graph',d:'Used for discrete or categorical data. Bars do not touch. Best for comparing groups.'},
+      {t:'Line graph',d:'Used for continuous data showing a trend. Independent variable on x-axis, dependent on y-axis.'},
+      {t:'Risk assessment',d:'Identifying potential hazards in an experiment and planning controls to minimise risks before starting.'},
+      {t:'Peer review',d:'Process where other expert scientists critically evaluate research before publication to check for errors and validate findings.'},
+      {t:'Bias',d:'A systematic error or unfair influence that skews results in a particular direction. Can affect both data collection and interpretation.'},
+      {t:'Secondary source',d:'Information from existing research, books or databases, rather than directly gathered by the researcher.'},
+    ],
+    qs:[
+      {q:'Which variable is deliberately changed by the scientist?',o:['Dependent variable','Controlled variable','Independent variable','Anomalous variable'],a:2,e:'The independent (manipulated) variable is deliberately changed. Only ONE should be changed per experiment to make it a fair test.'},
+      {q:'What is the purpose of a control experiment?',o:['Change all variables at once','Provide a baseline comparison with no changes made','Identify anomalous results','Calculate the mean'],a:1,e:'A control experiment runs under normal conditions without any changes, giving a baseline to compare experimental results against.'},
+      {q:'Results that are consistent but far from the true value are:',o:['Accurate and precise','Accurate but not precise','Precise but not accurate','Neither accurate nor precise'],a:2,e:'Precise = results close to each other (consistent). Accurate = results close to the true value. You can be one without the other.'},
+      {q:'"The solution turned blue" is an example of:',o:['Quantitative data','Numerical data','Qualitative data','Graphical data'],a:2,e:'Qualitative data is descriptive and non-numerical — observed with the senses. Quantitative data involves numbers and measurements.'},
+      {q:'A hypothesis should be:',o:['A proven fact','A testable prediction in If…then…because format','A summary of results','A list of equipment'],a:1,e:'A good hypothesis is a specific, testable prediction. It is written as "If [independent variable] then [dependent variable] because [reasoning]."'},
+      {q:'Reliability means:',o:['Results close to the true value','The experiment tests what it intends to','Results consistent when the experiment is repeated','Data is numerical'],a:2,e:'Reliability = consistent, repeatable results. Improved by repeating the experiment multiple times and calculating an average.'},
+      {q:'Which graph is best for showing a trend in continuous data?',o:['Bar graph','Pie chart','Line graph','Pictograph'],a:2,e:'Line graphs display continuous data and show trends. Independent variable on x-axis, dependent variable on y-axis, with a line of best fit.'},
+      {q:'An anomalous result should be:',o:['Always included in averages','Investigated and usually excluded from averages','Used as the final answer','Reported as the mean'],a:1,e:'Anomalous results are investigated for the cause (usually error) and excluded when calculating the mean to avoid skewing results.'},
+      {q:'What are SI units?',o:['Units used only in Australia','The International System of Units — global measurement standard','Units for temperature only','Any metric units'],a:1,e:'SI (Système International) units are the globally agreed standard: metres, kilograms, seconds, kelvin, etc.'},
+      {q:'Peer review involves:',o:['Students reviewing homework','Expert scientists evaluating research before publication','A teacher checking an experiment','Publishing results online immediately'],a:1,e:'Peer review = other expert scientists critically evaluate research before publication, checking for errors and validating findings.'},
+    ],
+    sa:[
+      {q:'Explain the difference between accuracy and precision. Give an example of results that are precise but not accurate.',marks:3,hint:'Think about a dartboard — all darts in the same spot (precise) but nowhere near the bullseye (not accurate).',ans:'Accuracy refers to how close a measurement is to the true or accepted value. Precision refers to how closely repeated measurements agree with each other (consistency).\n\nExample of precise but not accurate: A student measures the boiling point of water five times and gets 96°C, 96°C, 95°C, 96°C, 96°C. The results are very consistent (precise) but they are all far from the true value of 100°C (not accurate). This could be caused by a systematic error, such as an incorrectly calibrated thermometer.'},
+      {q:'Design a fair test to investigate how the concentration of sugar affects the rate of yeast fermentation. Identify the independent, dependent and at least two controlled variables.',marks:4,hint:'Remember: only ONE thing changes (independent variable). Everything else stays the same (controlled). You measure the dependent variable.',ans:'Independent variable: Concentration of sugar solution (e.g. 5%, 10%, 15%, 20%).\n\nDependent variable: Rate of fermentation — measured by the volume of CO₂ gas produced per minute, or the time taken to produce a set volume of CO₂.\n\nControlled variables (at least two): Volume of yeast solution used each time; temperature of the water bath; volume of sugar solution used; type of yeast; pH of solution; size/type of container.\n\nControl experiment: A trial with 0% sugar (water only) to confirm that sugar is necessary for fermentation.'},
+      {q:'A student conducts an experiment and gets the following results: 4.2, 4.5, 4.1, 8.9, 4.3. Identify the anomalous result and explain what the student should do with it.',marks:2,hint:'Look for the result that does not fit the pattern. What causes anomalous results?',ans:'The anomalous result is 8.9, as it is significantly different from the other four results which are all clustered between 4.1 and 4.5.\n\nThe student should: (1) Investigate the cause — likely an experimental or measurement error. (2) Repeat that trial to see if the result can be reproduced. (3) Exclude 8.9 from the calculation of the mean, as including it would give a misleading average.\n\nMean without anomaly = (4.2 + 4.5 + 4.1 + 4.3) ÷ 4 = 4.275 ≈ 4.3'},
+      {q:'What is the difference between qualitative and quantitative data? Give one example of each that could be collected during a chemistry experiment.',marks:2,hint:'Qualitative = descriptions; Quantitative = numbers with units.',ans:'Qualitative data is descriptive and non-numerical — it is observed using the senses and cannot be expressed as a number.\nExample: The solution changed from colourless to bright orange when heated.\n\nQuantitative data is numerical and measurable — it is expressed as a number with units.\nExample: The temperature of the solution increased from 25°C to 68°C over 5 minutes.'},
+      {q:'Explain why it is important for scientists to repeat experiments multiple times and to have their work peer reviewed.',marks:3,hint:'Think about reliability, bias and the importance of checking conclusions.',ans:'Repeating experiments multiple times improves reliability — it shows that results are consistent and not due to chance or random error. Repeated trials allow anomalous results to be identified and allow a more accurate mean to be calculated.\n\nPeer review is important because: (1) It allows other expert scientists to check for errors in method, analysis or conclusions. (2) It reduces the effect of bias — the original researcher may unconsciously favour certain results. (3) It validates the findings before they are published, maintaining the integrity of the scientific community and ensuring only quality research is accepted.'},
+      {q:'A scientist claims that "plants grow taller in red light than blue light." Write a suitable hypothesis for this investigation and describe how you would test it.',marks:4,hint:'Hypothesis = If… then… because. Your test must be a fair test with one independent variable.',ans:'Hypothesis: If plants are grown under red light, then they will grow taller than plants grown under blue light, because red light (wavelength ~660 nm) is more effectively absorbed by chlorophyll for photosynthesis.\n\nTo test this:\n- Independent variable: Colour/wavelength of light (red vs blue)\n- Dependent variable: Height of plant (cm) measured daily over 4 weeks\n- Controlled variables: Same plant species, same pot size, same volume of water, same temperature, same duration of light exposure per day, same initial plant height\n- Control: Plants grown under white (full spectrum) light\n- Procedure: Grow at least 5 plants under each light colour; measure height weekly; calculate mean height for each group; plot on a line graph; compare results.'},
+    ],
+    sum:`<b>🧪 The Scientific Method</b><br>Observation → Question → Hypothesis → Experiment → Results → Conclusion → Communication (peer review).<br><br>
+<b>🧪 Variables</b><br>• Independent: deliberately changed (ONE only)<br>• Dependent: measured/observed<br>• Controlled: kept the same (fair test)<br>• Control experiment: baseline with no changes<br><br>
+<b>🧪 Data Quality</b><br>• Accuracy: close to true value<br>• Precision: consistent with each other<br>• Reliability: repeated experiments same results<br>• Validity: experiment tests what it intends to<br><br>
+<b>🧪 Data Types</b><br>Qualitative (descriptive) vs Quantitative (numerical, with units).<br><br>
+<b>🧪 Graphs</b><br>Bar: categorical/discrete data. Line: continuous data/trends. Always label axes with units.`
+  },
+  {
+    id:2, emoji:'🧬', short:'Ch 2: Control',
+    title:'Chapter 2: Control and Regulation',
+    color:'#FF9F43', light:'#FFF3E0', dark:'#E67E22',
+    grad:'linear-gradient(135deg,#FF9F43,#FFDD57)',
+    cards:[
+      {t:'Homeostasis',d:'The maintenance of a stable internal environment (e.g. temperature, blood glucose, water) despite external changes.'},
+      {t:'Stimulus',d:'A detectable change in the internal or external environment that triggers a response in an organism.'},
+      {t:'Response',d:'The reaction of an organism to a stimulus. Helps the organism survive and maintain homeostasis.'},
+      {t:'Nervous system',d:'Rapid communication system: brain + spinal cord + nerves. Uses electrical nerve impulses. Controls fast responses.'},
+      {t:'Neuron',d:'The basic functional unit of the nervous system. Specialised cells that carry electrical impulses. Types: sensory, motor, interneuron.'},
+      {t:'Sensory neuron',d:'Carries impulses FROM receptors (sense organs) TOWARD the central nervous system (brain/spinal cord).'},
+      {t:'Motor neuron',d:'Carries impulses FROM the CNS TO effectors (muscles or glands) to produce a response.'},
+      {t:'Interneuron',d:'Found in the brain and spinal cord. Connects sensory and motor neurons. Also called relay neurons.'},
+      {t:'Synapse',d:'A tiny gap between two neurons. Signals cross using chemical neurotransmitters released from one neuron and detected by the next.'},
+      {t:'Reflex action',d:'A rapid, automatic, involuntary response to a stimulus that does not involve conscious thought. Pathway = reflex arc.'},
+      {t:'Reflex arc',d:'Receptor → Sensory neuron → Spinal cord (interneuron) → Motor neuron → Effector (muscle/gland).'},
+      {t:'Endocrine system',d:'Slow chemical communication system. Glands secrete hormones into the bloodstream to target organs. Effects last longer than nerve impulses.'},
+      {t:'Hormone',d:'A chemical messenger produced by an endocrine gland, transported in blood to a target organ to cause a specific response.'},
+      {t:'Insulin',d:'Hormone from pancreas that LOWERS blood glucose by stimulating cells to absorb glucose and liver to store it as glycogen.'},
+      {t:'Glucagon',d:'Hormone from pancreas that RAISES blood glucose by stimulating the liver to break down glycogen and release glucose into blood.'},
+      {t:'Negative feedback',d:'A control mechanism where the response to a change OPPOSES and reverses that change, restoring the system to its set point.'},
+      {t:'Thermoregulation',d:'Maintaining constant body temperature (~37°C). Involves sweating, shivering, vasodilation and vasoconstriction.'},
+      {t:'Vasodilation',d:'Widening of blood vessels near skin surface → more blood flow → more heat loss. Response when body is too HOT.'},
+      {t:'Vasoconstriction',d:'Narrowing of blood vessels near skin → less blood flow → less heat loss. Response when body is too COLD.'},
+      {t:'Diabetes mellitus',d:'Failure of blood glucose regulation. Type 1: no insulin produced (autoimmune). Type 2: cells resistant to insulin.'},
+      {t:'Target organ',d:'The specific organ or tissue that a hormone acts upon. Only target organs have receptors that respond to that hormone.'},
+      {t:'Adrenaline',d:'A hormone released by adrenal glands in response to stress or danger. Prepares the body for "fight or flight" — increases heart rate, dilates pupils, releases glucose.'},
+    ],
+    qs:[
+      {q:'Homeostasis refers to:',o:['Growth and reproduction','Maintaining a stable internal environment','The process of digestion','Nerve impulse transmission'],a:1,e:'Homeostasis = maintaining a stable internal environment despite external changes. Examples: temperature 37°C, blood glucose 4–8 mmol/L, water balance.'},
+      {q:'Which neuron carries impulses FROM receptors TO the brain/spinal cord?',o:['Motor neuron','Interneuron','Sensory neuron','Effector neuron'],a:2,e:'Sensory neurons carry signals FROM receptors (e.g. skin, eyes) TOWARD the CNS. Motor neurons carry signals FROM the CNS to effectors (muscles/glands).'},
+      {q:'A synapse is:',o:['A type of hormone','A gap between neurons where chemical signals pass','The brain\'s control centre','A muscle response'],a:1,e:'A synapse is the gap between two neurons. Neurotransmitters are released from one neuron, cross the gap, and bind to receptors on the next neuron.'},
+      {q:'A reflex action is:',o:['A conscious deliberate response','A slow hormonal response','A rapid automatic involuntary response','A response requiring brain processing'],a:2,e:'Reflexes are automatic and involuntary — they do not require conscious thought. The pathway goes through the spinal cord, bypassing the brain for speed.'},
+      {q:'Insulin is produced by the pancreas and:',o:['Raises blood glucose','Lowers blood glucose by helping cells absorb it','Breaks down glycogen into glucose','Controls heart rate'],a:1,e:'Insulin lowers blood glucose by stimulating cells to absorb glucose and the liver to convert glucose to glycogen for storage.'},
+      {q:'Negative feedback:',o:['Amplifies changes away from the set point','Opposes and reverses a change to restore the set point','Only involves hormones','Only controls temperature'],a:1,e:'Negative feedback reverses a change back to the normal set point. Example: high blood glucose → insulin released → glucose lowered → back to normal.'},
+      {q:'When the body is too hot, it responds by:',o:['Vasoconstriction and shivering','Vasodilation and sweating','Releasing glucagon','Reducing nerve impulse speed'],a:1,e:'Too hot → vasodilation (blood vessels widen, more heat lost) + sweating (evaporation cools skin). Both help reduce body temperature.'},
+      {q:'The correct order of a reflex arc is:',o:['Effector→Motor→Spinal cord→Sensory→Receptor','Receptor→Sensory neuron→Spinal cord→Motor neuron→Effector','Receptor→Motor→Brain→Sensory→Effector','Spinal cord→Receptor→Effector→Sensory→Motor'],a:1,e:'Reflex arc: Receptor → Sensory neuron → Spinal cord (interneuron) → Motor neuron → Effector. Bypasses the brain for a faster response.'},
+      {q:'Type 1 diabetes occurs because:',o:['Cells do not respond to insulin','The pancreas does not produce insulin','Too much glucagon is produced','The liver stores too much glycogen'],a:1,e:'In Type 1 diabetes, the immune system destroys insulin-producing cells in the pancreas, so no insulin is made. Requires insulin injections.'},
+      {q:'The endocrine system communicates using:',o:['Electrical nerve impulses','Hormones transported in the bloodstream','Neurotransmitters across synapses','Sound and electrical signals'],a:1,e:'The endocrine system uses hormones — chemical messengers secreted by glands into the bloodstream. Slower than nervous system but longer-lasting effects.'},
+    ],
+    sa:[
+      {q:'Describe how the body uses negative feedback to regulate blood glucose levels after a meal. Include the role of insulin and glucagon in your answer.',marks:5,hint:'Think: what happens to blood glucose after eating? What does the pancreas do? Then what? What if glucose drops too low?',ans:'After a meal, blood glucose levels rise above the set point (approximately 4–8 mmol/L).\n\nResponse to HIGH blood glucose:\n1. The pancreas detects the rise in blood glucose.\n2. The beta cells of the pancreas secrete insulin into the bloodstream.\n3. Insulin travels to target cells (liver, muscle, fat cells).\n4. Insulin stimulates cells to absorb glucose from the blood and the liver to convert glucose to glycogen (glycogenesis) for storage.\n5. Blood glucose levels fall back toward the set point.\n\nResponse to LOW blood glucose (e.g. between meals):\n1. The alpha cells of the pancreas detect low blood glucose.\n2. Glucagon is secreted into the bloodstream.\n3. Glucagon stimulates the liver to break down glycogen into glucose (glycogenolysis) and release it into the blood.\n4. Blood glucose rises back to the set point.\n\nThis is a negative feedback system because each response opposes and reverses the original change.'},
+      {q:'Compare the nervous system and the endocrine system. Discuss the speed, method of communication, and duration of effect for each.',marks:4,hint:'Use a compare structure: nervous vs endocrine. Think about how fast each works, how signals travel, and how long effects last.',ans:'Nervous System:\n- Speed: Very fast (milliseconds) — electrical impulses travel along neurons at up to 120 m/s.\n- Method of communication: Electrical nerve impulses along neurons, with neurotransmitters crossing synapses.\n- Duration: Short-lived effects — response begins and ends quickly.\n- Example: Pulling hand away from a hot surface (reflex), blinking.\n\nEndocrine System:\n- Speed: Slower (seconds to minutes) — hormones must travel through the bloodstream.\n- Method of communication: Chemical hormones secreted by glands into the bloodstream, travelling to target organs.\n- Duration: Longer-lasting effects, as hormones remain in the blood.\n- Example: Insulin regulating blood glucose over hours; adrenaline during stress.\n\nKey difference: The nervous system is fast and precise (specific pathway); the endocrine system is slower but has widespread, longer-lasting effects.'},
+      {q:'Explain what happens in the body when you touch a very hot object, from the moment of contact to the withdrawal of your hand. Use the correct sequence of the reflex arc.',marks:4,hint:'Follow the reflex arc step by step: receptor → sensory neuron → spinal cord → motor neuron → effector. Then mention brain awareness.',ans:'1. Receptor: Heat/pain receptors in the skin of the hand detect the hot object (stimulus).\n2. Sensory neuron: An electrical impulse is generated and travels along the sensory neuron toward the spinal cord (CNS).\n3. Interneuron (relay neuron): The impulse is passed to an interneuron in the spinal cord. The impulse does NOT travel to the brain at this stage.\n4. Motor neuron: The interneuron sends an impulse along the motor neuron to the effector.\n5. Effector: The arm muscles (effectors) contract, rapidly withdrawing the hand from the hot object.\n\nThe brain becomes aware of the pain only AFTER the hand has moved, because the pain signal continues up the spinal cord to the brain. This is why reflexes are so fast — they bypass the brain to reduce reaction time and minimise injury.'},
+      {q:'Explain how the body responds to a drop in body temperature below 37°C. Include at least THREE specific physiological responses and explain how each helps restore normal temperature.',marks:4,hint:'Think: what does your body do when you are cold? Shivering, blood vessels, hairs... Why does each help?',ans:'When body temperature drops below 37°C (the set point), the hypothalamus in the brain detects the change and triggers several responses:\n\n1. Vasoconstriction: Blood vessels near the skin surface narrow (constrict), reducing blood flow to the skin. This reduces heat loss from the body to the environment by keeping warm blood away from the skin surface.\n\n2. Shivering: Skeletal muscles contract and relax rapidly (shivering). Muscle contractions release thermal energy as a by-product of cellular respiration, generating heat to warm the body.\n\n3. Piloerection (goosebumps): Tiny muscles (erector pili) attached to body hairs contract, causing hairs to stand up. In hairy animals this traps an insulating layer of air. In humans this effect is minimal but still present.\n\n4. Reduced sweating: Sweat glands reduce or stop sweat production to minimise evaporative cooling.\n\nAll these responses are part of a negative feedback system — they continue until body temperature returns to 37°C, at which point they cease.'},
+      {q:'A patient is diagnosed with Type 2 diabetes. Explain what is happening at a cellular level and describe TWO lifestyle changes that could help manage this condition.',marks:3,hint:'Type 2 = the cells stop listening to insulin. Why is this a problem? What can help?',ans:'In Type 2 diabetes, the body\'s cells become resistant to insulin — the insulin receptor sites on cells no longer respond properly to insulin signals. As a result, even though the pancreas produces insulin (often in excess), cells cannot effectively absorb glucose from the blood. Blood glucose levels remain chronically elevated (hyperglycaemia), which can damage blood vessels, nerves, kidneys and eyes over time.\n\nTwo lifestyle changes that can help manage Type 2 diabetes:\n\n1. Regular physical exercise: Exercise increases the uptake of glucose by muscle cells and improves insulin sensitivity, helping cells respond better to insulin. This lowers blood glucose levels naturally.\n\n2. Dietary changes (reduced refined carbohydrates and sugar): Limiting foods that cause rapid spikes in blood glucose (e.g. sugary drinks, white bread) reduces the strain on the pancreas and helps keep blood glucose within a healthy range.'},
+      {q:'Define homeostasis and explain why it is essential for the survival of organisms. Give TWO specific examples of homeostatic processes in the human body.',marks:3,hint:'What does homeostasis mean? Why do cells need a stable environment? Give real examples.',ans:'Homeostasis is the process by which organisms actively maintain a stable internal environment within narrow limits, despite changes in the external environment. It is regulated by negative feedback systems involving sensors, control centres and effectors.\n\nWhy it is essential: Body cells and enzymes function optimally only within narrow ranges of temperature, pH and chemical concentrations. If conditions deviate too far from these ranges, enzymes denature, metabolic reactions fail, cells die and the organism cannot survive.\n\nTwo examples:\n\n1. Thermoregulation: The body maintains core temperature at approximately 37°C. Too hot → sweating and vasodilation. Too cold → shivering and vasoconstriction. This ensures enzymes function efficiently.\n\n2. Blood glucose regulation: The pancreas maintains blood glucose at approximately 4–8 mmol/L using insulin (to lower) and glucagon (to raise). This ensures cells always have enough glucose for cellular respiration while avoiding toxic hyperglycaemia.'},
+    ],
+    sum:`<b>🧬 Homeostasis</b><br>Maintaining stable internal conditions (temperature, blood glucose, water). Uses negative feedback.<br><br>
+<b>🧬 Nervous System (fast)</b><br>Brain + Spinal cord + Nerves → electrical impulses.<br>Reflex arc: Receptor → Sensory neuron → Spinal cord → Motor neuron → Effector.<br><br>
+<b>🧬 Endocrine System (slow)</b><br>Glands → hormones in bloodstream → target organs.<br>Insulin (lowers glucose) / Glucagon (raises glucose) — both from pancreas.<br><br>
+<b>🧬 Thermoregulation</b><br>Too hot → Vasodilation + Sweating. Too cold → Vasoconstriction + Shivering.<br><br>
+<b>🧬 Diabetes</b><br>Type 1: no insulin produced. Type 2: cells resist insulin.`
+  },
+  {
+    id:3, emoji:'🌱', short:'Ch 3: Reproduction',
+    title:'Chapter 3: Reproduction',
+    color:'#1DD1A1', light:'#E0FFF7', dark:'#0D9E77',
+    grad:'linear-gradient(135deg,#1DD1A1,#48DBFB)',
+    cards:[
+      {t:'Reproduction',d:'The biological process by which organisms produce offspring to continue their species. Can be sexual or asexual.'},
+      {t:'Sexual reproduction',d:'Reproduction involving fusion of two gametes from two parents. Produces genetically UNIQUE offspring. Increases genetic diversity.'},
+      {t:'Asexual reproduction',d:'Reproduction involving ONE parent only. Produces genetically IDENTICAL offspring (clones). No gametes involved.'},
+      {t:'Gametes',d:'Sex cells: sperm (male) and egg/ovum (female) in animals; pollen (male) and egg cell (female) in plants. Haploid (n).'},
+      {t:'Fertilisation',d:'Fusion of male gamete (sperm) with female gamete (egg) to form a diploid zygote. Can be internal or external.'},
+      {t:'Zygote',d:'The fertilised egg cell formed when sperm fuses with egg. Diploid (2n). Divides by mitosis to form an embryo.'},
+      {t:'Mitosis',d:'Cell division producing TWO genetically IDENTICAL diploid daughter cells. Used for growth, repair and asexual reproduction.'},
+      {t:'Meiosis',d:'Cell division producing FOUR genetically UNIQUE haploid daughter cells. Used to produce gametes (sex cells).'},
+      {t:'Chromosome',d:'Thread-like structures in the nucleus made of DNA. Humans have 46 chromosomes (23 pairs) in body cells.'},
+      {t:'DNA',d:'Deoxyribonucleic acid — double helix molecule carrying genetic information as base sequences (A-T, C-G). Found in chromosomes.'},
+      {t:'Gene',d:'A section of DNA coding for a specific protein or trait. Located on chromosomes. Humans have ~20,000 genes.'},
+      {t:'Diploid (2n)',d:'A cell with two sets of chromosomes — one from each parent. Human body cells: 2n = 46.'},
+      {t:'Haploid (n)',d:'A cell with ONE set of chromosomes — half the normal number. Human gametes: n = 23.'},
+      {t:'Binary fission',d:'Asexual reproduction in bacteria — cell duplicates DNA then splits into two identical daughter cells. Very rapid.'},
+      {t:'Budding',d:'Asexual reproduction where a new organism grows from the parent\'s body (e.g. yeast, hydra). The bud detaches to form a new individual.'},
+      {t:'Vegetative propagation',d:'Asexual reproduction in plants using roots, stems or leaves (e.g. stolons in strawberries, bulbs, cuttings).'},
+      {t:'Pollination',d:'Transfer of pollen from anther (male) to stigma (female) of a flower. Can be by wind, insects or other animals.'},
+      {t:'Internal fertilisation',d:'Fertilisation inside the female\'s body. Common in land animals (mammals, birds, reptiles). Better protection for embryo.'},
+      {t:'External fertilisation',d:'Fertilisation outside the body in water. Common in fish and amphibians. Requires water; produces large numbers of eggs.'},
+      {t:'Placenta',d:'Organ in placental mammals connecting embryo/foetus to uterus. Allows exchange of nutrients, O₂ and waste between mother and foetus.'},
+      {t:'Genetic diversity',d:'Variation in DNA between individuals in a population. Sexual reproduction increases genetic diversity; asexual reproduction does not.'},
+      {t:'Gestation period',d:'Time from fertilisation to birth. Longer gestation generally means more developed offspring at birth (e.g. elephant ~22 months, human ~9 months).'},
+    ],
+    qs:[
+      {q:'The main advantage of sexual reproduction over asexual reproduction is:',o:['Faster process','Requires only one parent','Produces genetically diverse offspring','Produces more offspring'],a:2,e:'Sexual reproduction produces genetically unique offspring (via meiosis + fertilisation), increasing genetic diversity — helping populations adapt to changing environments.'},
+      {q:'Meiosis produces cells that are:',o:['Diploid and genetically identical','Haploid and genetically unique','Diploid and genetically unique','Haploid and genetically identical'],a:1,e:'Meiosis produces 4 haploid (n) cells that are genetically unique. The chromosome number is halved, which is restored at fertilisation.'},
+      {q:'Fertilisation results in formation of a:',o:['Gamete','Embryo','Zygote','Chromosome'],a:2,e:'Fertilisation (sperm + egg) forms a zygote — diploid (2n) with genetic material from both parents. The zygote divides by mitosis to form an embryo.'},
+      {q:'Which cell division is used for growth and repair?',o:['Meiosis','Binary fission','Mitosis','Budding'],a:2,e:'Mitosis produces two identical diploid cells — used for growth, tissue repair and asexual reproduction. It maintains the chromosome number.'},
+      {q:'How many chromosomes are in a human body cell?',o:['23','46','92','44'],a:1,e:'Human body (somatic) cells are diploid with 46 chromosomes (23 pairs). Gametes are haploid with 23 chromosomes.'},
+      {q:'Binary fission is used by:',o:['Mammals','Flowering plants','Bacteria (prokaryotes)','Yeast'],a:2,e:'Bacteria reproduce by binary fission — DNA is duplicated and the cell splits into two genetically identical daughter cells.'},
+      {q:'Pollination involves:',o:['Fusion of sperm and egg','Transfer of pollen from anther to stigma','Formation of a zygote','Root growth from cuttings'],a:1,e:'Pollination = transfer of pollen (male gametes) from the anther to the stigma. Fertilisation can then occur to form a seed.'},
+      {q:'External fertilisation is most common in:',o:['Mammals','Birds','Fish and amphibians','Reptiles'],a:2,e:'Fish and amphibians release eggs and sperm into water. Water carries sperm to eggs and prevents drying out.'},
+      {q:'The placenta allows:',o:['The baby\'s chromosomes to form','Nutrient and gas exchange between mother and foetus','Eggs to be stored before fertilisation','Timing of birth to be controlled'],a:1,e:'The placenta is the interface between mother and foetus — oxygen, nutrients and antibodies pass from mother to foetus; CO₂ and wastes pass back.'},
+      {q:'Asexual reproduction produces:',o:['Genetically unique offspring','Haploid cells','Genetically identical clones of the parent','Different species'],a:2,e:'Asexual reproduction (one parent, mitosis/binary fission/budding) produces genetically identical offspring (clones) because there is no mixing of genetic material.'},
+    ],
+    sa:[
+      {q:'Compare mitosis and meiosis. In your answer, include the number of daughter cells produced, whether they are haploid or diploid, whether they are genetically identical, and a specific example of where each occurs in the human body.',marks:4,hint:'Use a side-by-side comparison. Think: how many cells? Same or different chromosomes? Where does it happen?',ans:'Mitosis:\n- Produces 2 daughter cells\n- Daughter cells are DIPLOID (2n = 46 chromosomes in humans)\n- Genetically IDENTICAL to the parent cell and each other\n- Used for: growth, tissue repair and replacement, and asexual reproduction\n- Example in humans: skin cells dividing to heal a wound; red blood cell production in bone marrow\n\nMeiosis:\n- Produces 4 daughter cells\n- Daughter cells are HAPLOID (n = 23 chromosomes in humans)\n- Genetically UNIQUE due to crossing over and independent assortment\n- Used for: production of gametes (sex cells) only\n- Example in humans: sperm production in testes; egg production in ovaries\n\nKey difference: Mitosis maintains chromosome number (used for growth); meiosis halves chromosome number (used for sexual reproduction). The haploid number is restored at fertilisation (n + n = 2n).'},
+      {q:'Explain the advantages and disadvantages of asexual reproduction compared to sexual reproduction. Include examples of organisms that use each strategy.',marks:4,hint:'Think: speed, energy, genetic diversity, adaptability. What is good about being a clone? What is risky?',ans:'Asexual Reproduction:\nAdvantages:\n- Only one parent needed — no need to find a mate\n- Faster — can reproduce rapidly when conditions are favourable\n- Energy efficient — no energy spent on finding mates or producing gametes\n- All offspring are viable — no failed fertilisations\n\nDisadvantages:\n- Produces genetically identical clones — no genetic diversity\n- If one organism is susceptible to a disease or environmental change, ALL offspring are equally susceptible\n- Cannot adapt as quickly to changing environments\n\nExamples: bacteria (binary fission), strawberry plants (stolons), yeast (budding), hydra (budding)\n\nSexual Reproduction:\nAdvantages:\n- Produces genetically unique offspring — increases genetic diversity\n- Populations can adapt more readily to changing environments and new diseases\n- Offspring may have beneficial combinations of traits\n\nDisadvantages:\n- Requires two parents and a mate — takes more time and energy\n- Gamete production (meiosis) requires energy\n- Some offspring may inherit disadvantageous combinations of genes\n\nExamples: humans, flowering plants, most animals'},
+      {q:'Describe the process of sexual reproduction in flowering plants, from pollination through to seed dispersal. Include diagrams if you wish.',marks:5,hint:'Step by step: pollination → fertilisation → seed → fruit → dispersal. Do not forget what happens inside the ovule.',ans:'1. Pollination: Pollen grains (containing male gametes) are transferred from the anther (male part) to the stigma (female part) of a flower. This can occur by wind pollination (e.g. grasses — light, smooth pollen produced in large quantities) or by animal pollination (e.g. bees, butterflies — pollen is sticky and flowers have nectar, colour and scent as attractants).\n\n2. Germination of pollen: After landing on the stigma, the pollen grain germinates and grows a pollen tube down through the style toward the ovary.\n\n3. Fertilisation: The male gamete travels down the pollen tube and fuses with the egg cell inside the ovule (contained in the ovary), forming a diploid zygote.\n\n4. Seed development: The zygote divides by mitosis and develops into an embryo. The ovule develops into a seed containing the embryo and a food store (endosperm).\n\n5. Fruit formation: The ovary wall develops into a fruit surrounding the seed(s). The fruit protects the seed and aids in dispersal.\n\n6. Seed dispersal: Seeds are dispersed away from the parent plant to reduce competition. Methods include: wind (e.g. dandelion parachutes), animals (eaten and excreted, or carried on fur), water, or explosive mechanisms (e.g. pea pods).'},
+      {q:'Explain the difference between internal and external fertilisation. Discuss ONE advantage and ONE disadvantage of each strategy.',marks:4,hint:'Think about where fertilisation happens and what that means for the egg\'s survival and the number of offspring needed.',ans:'Internal Fertilisation:\n- Definition: Fertilisation occurs inside the female\'s body, after sperm are transferred directly into the female reproductive tract.\n- Found in: Most land animals — reptiles, birds, mammals.\n\nAdvantage: The embryo is protected inside the female\'s body (or a tough shell/egg), reducing exposure to predators, desiccation and environmental hazards. Higher chance of each fertilised egg developing successfully.\n\nDisadvantage: Requires physical mating between partners and special reproductive structures. Fewer offspring can be produced at one time compared to external fertilisers.\n\nExternal Fertilisation:\n- Definition: Eggs and sperm are released into the external environment (usually water), where fertilisation occurs.\n- Found in: Most fish and amphibians.\n\nAdvantage: Very large numbers of eggs and sperm can be released simultaneously, increasing the chance of fertilisation without the need for physical mating.\n\nDisadvantage: Fertilised eggs are exposed to predators, disease and environmental conditions, so mortality is very high. Many eggs are never fertilised. Requires an aquatic or moist environment.'},
+      {q:'A student says "mitosis and meiosis are basically the same process." Do you agree or disagree? Justify your answer with at least FOUR specific differences.',marks:4,hint:'You disagree! List key differences: number of divisions, chromosome number, genetic outcome, purpose.',ans:'I disagree. Although both mitosis and meiosis are forms of cell division that begin with a diploid cell, they are fundamentally different processes with different purposes and outcomes.\n\nFour key differences:\n\n1. Number of daughter cells: Mitosis produces 2 daughter cells; meiosis produces 4 daughter cells.\n\n2. Chromosome number of daughter cells: Mitosis produces diploid (2n) daughter cells with the same chromosome number as the parent. Meiosis produces haploid (n) daughter cells with half the chromosome number.\n\n3. Genetic identity: Mitosis produces genetically identical daughter cells (clones of the parent). Meiosis produces genetically unique cells due to crossing over during prophase I and independent assortment — each of the 4 daughter cells has a unique combination of chromosomes.\n\n4. Purpose and location: Mitosis is used for growth, repair and asexual reproduction — occurs in all body (somatic) cells. Meiosis is used exclusively to produce gametes (sperm and eggs) — occurs only in reproductive organs (gonads: testes and ovaries).\n\n5. (Bonus) Number of divisions: Mitosis involves ONE division. Meiosis involves TWO sequential divisions (Meiosis I and Meiosis II).'},
+    ],
+    sum:`<b>🌱 Sexual vs Asexual Reproduction</b><br>Sexual: 2 parents + gametes + fertilisation → genetically UNIQUE offspring.<br>Asexual: 1 parent, no gametes → genetically IDENTICAL clones.<br><br>
+<b>🌱 Cell Division</b><br>Mitosis: 1 → 2 identical diploid cells (growth, repair).<br>Meiosis: 1 → 4 unique haploid cells (gametes).<br><br>
+<b>🌱 Key Numbers</b><br>Diploid (2n): human body cells = 46 chromosomes.<br>Haploid (n): human gametes = 23 chromosomes.<br><br>
+<b>🌱 Asexual Types</b><br>Binary fission (bacteria), Budding (yeast/hydra), Vegetative propagation (plants).<br><br>
+<b>🌱 Plant Reproduction</b><br>Pollination → Fertilisation → Seed → Fruit → Dispersal.`
+  },
+  {
+    id:7, emoji:'🌊', short:'Ch 7: Particles & Waves',
+    title:'Chapter 7: Particles and Waves',
+    color:'#5F27CD', light:'#EDE7FF', dark:'#3D1A8A',
+    grad:'linear-gradient(135deg,#5F27CD,#48DBFB)',
+    cards:[
+      {t:'Wave',d:'A disturbance that transfers energy without permanently moving matter. Can travel through solids, liquids, gases or a vacuum (EM waves).'},
+      {t:'Transverse wave',d:'Particles vibrate PERPENDICULAR to the direction of wave travel. E.g. light, water waves, all electromagnetic waves.'},
+      {t:'Longitudinal wave',d:'Particles vibrate PARALLEL to the direction of wave travel, creating compressions and rarefactions. E.g. sound waves.'},
+      {t:'Amplitude',d:'Maximum displacement of a particle from its rest position. Greater amplitude = more energy. Determines loudness (sound) or brightness (light).'},
+      {t:'Wavelength (λ)',d:'Distance between two consecutive identical points (e.g. crest to crest). Measured in metres. Inversely related to frequency.'},
+      {t:'Frequency (f)',d:'Number of complete waves passing a point per second. Measured in Hertz (Hz). Higher frequency = shorter wavelength (for same speed).'},
+      {t:'Period (T)',d:'Time for one complete wave cycle. T = 1/f. Measured in seconds.'},
+      {t:'Wave speed',d:'v = fλ (speed = frequency × wavelength). Measured in m/s. For a given medium, wave speed is constant — if f increases, λ decreases.'},
+      {t:'Crest',d:'The highest point of a transverse wave — maximum positive displacement from rest position.'},
+      {t:'Trough',d:'The lowest point of a transverse wave — maximum negative displacement from rest position.'},
+      {t:'Compression',d:'Region in a longitudinal wave where particles are CLOSER together (higher pressure). E.g. in a sound wave.'},
+      {t:'Rarefaction',d:'Region in a longitudinal wave where particles are FURTHER apart (lower pressure). Alternates with compressions.'},
+      {t:'Reflection',d:'Bouncing of a wave off a surface/boundary. Angle of incidence = angle of reflection. Used in mirrors, echoes, sonar.'},
+      {t:'Refraction',d:'Bending of a wave as it enters a new medium and changes speed. Changes direction but not frequency.'},
+      {t:'Diffraction',d:'Spreading of waves through a gap or around an obstacle. Most pronounced when gap ≈ wavelength.'},
+      {t:'Electromagnetic spectrum',d:'Range of all EM waves ordered by wavelength/frequency: Radio → Microwave → Infrared → Visible → UV → X-ray → Gamma.'},
+      {t:'Speed of light',d:'All EM waves travel at 3 × 10⁸ m/s in a vacuum. The universal speed limit.'},
+      {t:'Sound wave',d:'Longitudinal mechanical wave requiring a medium. Cannot travel through a vacuum. Speed in air ~340 m/s.'},
+      {t:'Pitch',d:'Perceived highness/lowness of sound. Determined by FREQUENCY. Higher frequency = higher pitch.'},
+      {t:'Loudness',d:'Perceived volume of sound. Determined by AMPLITUDE. Greater amplitude = louder. Measured in decibels (dB).'},
+      {t:'Particle model',d:'Matter is made of tiny particles in constant motion. Explains properties of solids, liquids and gases.'},
+      {t:'Kinetic theory',d:'All particles are in constant random motion. Temperature is a measure of the average kinetic energy of the particles.'},
+    ],
+    qs:[
+      {q:'In a transverse wave, particles vibrate:',o:['Parallel to the direction of travel','Perpendicular to the direction of travel','In a circular motion','In the direction of energy transfer'],a:1,e:'Transverse waves (e.g. light, water waves) have particles vibrating at right angles (perpendicular) to the direction of travel. Longitudinal waves vibrate parallel.'},
+      {q:'The wave speed formula is:',o:['v = f + λ','v = f × λ','v = λ / f','v = f / λ'],a:1,e:'Wave speed (v) = frequency (f) × wavelength (λ). Units: m/s = Hz × m. If frequency doubles, wavelength halves (speed stays the same in the same medium).'},
+      {q:'Sound is an example of a:',o:['Transverse wave','Electromagnetic wave','Longitudinal wave','Wave that can travel through a vacuum'],a:2,e:'Sound is a longitudinal wave — particles vibrate parallel to wave direction, creating compressions and rarefactions. It needs a medium and cannot travel through a vacuum.'},
+      {q:'Higher amplitude in a sound wave means:',o:['Higher pitch','Louder sound','Faster wave speed','Longer wavelength'],a:1,e:'Amplitude = loudness. Greater amplitude = louder sound. Pitch is determined by frequency, not amplitude.'},
+      {q:'Refraction occurs when a wave:',o:['Bounces off a surface','Spreads through a gap','Changes speed entering a new medium','Loses all its energy'],a:2,e:'Refraction = wave changes speed entering a new medium → bends/changes direction. Light bends when going from air to glass (e.g. straw looks bent in water).'},
+      {q:'Which EM waves have the shortest wavelength and most energy?',o:['Radio waves','Infrared waves','Visible light','Gamma rays'],a:3,e:'Gamma rays have the shortest wavelength and highest energy in the EM spectrum. Radio waves have the longest wavelength and lowest energy.'},
+      {q:'Frequency is measured in:',o:['Metres','Seconds','Hertz (Hz)','Metres per second'],a:2,e:'Frequency is measured in Hertz (Hz). 1 Hz = 1 complete wave per second. Frequency determines pitch in sound and colour in light.'},
+      {q:'Diffraction is most noticeable when:',o:['Wave travels very fast','Gap size is similar to the wavelength','Wave has very high frequency','Medium is very dense'],a:1,e:'Diffraction (spreading through a gap) is most significant when gap size ≈ wavelength. This is why you can hear around corners — sound has long wavelengths (~1m).'},
+      {q:'Temperature is a measure of:',o:['Number of particles','Total mass of particles','Average kinetic energy of particles','Density of the material'],a:2,e:'Kinetic theory: temperature = average kinetic energy of particles. Higher temperature = particles move faster. At absolute zero (0 K), particle motion theoretically stops.'},
+      {q:'All electromagnetic waves in a vacuum travel at:',o:['340 m/s','1500 m/s','3 × 10⁶ m/s','3 × 10⁸ m/s'],a:3,e:'All EM waves travel at 3 × 10⁸ m/s (the speed of light) in a vacuum. This is the universal speed limit. In other media they slow down.'},
+    ],
+    sa:[
+      {q:'Compare transverse and longitudinal waves. In your answer, describe the direction of particle vibration relative to wave travel, and give TWO examples of each.',marks:4,hint:'Draw a diagram if it helps. Think about how the particles actually move in each type.',ans:'Transverse Waves:\n- The particles of the medium vibrate PERPENDICULAR (at right angles) to the direction of wave travel/energy transfer.\n- The wave has crests (peaks) and troughs (valleys).\n- Examples: Light waves, all other electromagnetic waves (radio, UV, X-rays), water surface waves, waves on a rope or string, seismic S-waves.\n\nLongitudinal Waves:\n- The particles of the medium vibrate PARALLEL to (in the same direction as) the direction of wave travel.\n- The wave consists of alternating compressions (particles close together, high pressure) and rarefactions (particles far apart, low pressure).\n- Examples: Sound waves in air, ultrasound, seismic P-waves.\n\nKey difference: In transverse waves, you can see the wave "going up and down" while energy travels horizontally. In longitudinal waves, the "push-pull" motion happens along the same line as energy travel. Also note: longitudinal waves (sound) require a medium and cannot travel through a vacuum, whereas transverse EM waves can.'},
+      {q:'A sound wave has a frequency of 440 Hz and travels through air at 340 m/s. Calculate the wavelength of this sound wave and explain what would happen to the wavelength if the frequency increased to 880 Hz.',marks:3,hint:'Use v = fλ, rearrange to find λ. Then think: if frequency doubles, what happens to wavelength if speed stays the same?',ans:'Step 1: Use the wave speed equation:\nv = f × λ\n340 = 440 × λ\nλ = 340 ÷ 440\nλ = 0.77 m (approximately 0.77 metres)\n\nStep 2: If frequency increases to 880 Hz (doubles):\nλ = 340 ÷ 880 = 0.39 m (approximately)\n\nThe wavelength halves (from ~0.77 m to ~0.39 m).\n\nExplanation: In a given medium, the wave speed is constant (340 m/s in air). Because v = f × λ, if frequency increases, wavelength must decrease proportionally to keep the speed constant. Doubling frequency → wavelength is halved. This is an inverse relationship: higher frequency = shorter wavelength.'},
+      {q:'Describe what happens when light passes from air into glass (refraction). Explain why refraction occurs and describe what happens to the speed, frequency and wavelength of the light as it enters the glass.',marks:4,hint:'Think about what happens to wave speed when light enters a denser medium. Remember: frequency NEVER changes. Use v = fλ to figure out wavelength.',ans:'When light passes from air into glass:\n\nWhat happens: The light ray bends TOWARD the normal (the imaginary line perpendicular to the glass surface). The ray changes direction at the boundary between the two media.\n\nWhy refraction occurs: Glass is optically denser than air. When light enters glass, it slows down. The change in speed causes the wavefronts to change direction — one part of the wavefront slows before the other, causing bending (similar to a car driving from smooth road onto gravel at an angle).\n\nChanges to wave properties:\n- Speed: DECREASES (light travels at ~3×10⁸ m/s in air but ~2×10⁸ m/s in glass)\n- Frequency: UNCHANGED — frequency is determined by the source and is constant\n- Wavelength: DECREASES — because v = fλ, if speed decreases and frequency stays the same, wavelength must also decrease\n\nWhen the light exits the glass back into air, it speeds up again and bends away from the normal, returning to its original direction (if the glass surfaces are parallel). This is why a glass block shifts a light ray sideways but doesn\'t permanently change its direction.'},
+      {q:'Explain the differences between reflection, refraction and diffraction. For each, describe ONE practical application.',marks:4,hint:'Three different wave behaviours — what does each do to the wave? Where do we use each one in real life?',ans:'Reflection:\n- Definition: The bouncing back of a wave when it strikes a boundary/surface. The angle of incidence = angle of reflection.\n- The wave does not enter the new medium — it bounces back.\n- Application: Mirrors use reflection of light. Echoes are reflections of sound. Sonar and ultrasound use reflection of sound waves to detect objects underwater or image body organs.\n\nRefraction:\n- Definition: The bending of a wave as it passes from one medium to another due to a change in wave speed.\n- Frequency stays the same; speed and wavelength change; direction changes.\n- Application: Lenses in glasses and cameras use refraction of light to focus images. Optical fibres use total internal reflection (a form of refraction). A magnifying glass refracts light to make objects appear larger.\n\nDiffraction:\n- Definition: The spreading out of waves as they pass through a gap or around an obstacle. Most noticeable when the gap is similar in size to the wavelength.\n- The wave spreads into the "shadow" region behind the obstacle.\n- Application: Radio waves diffract around hills and buildings, allowing signals to reach areas not in direct line of sight. Sound diffracts around corners, allowing you to hear around walls. Diffraction gratings are used in spectroscopy to analyse light.'},
+      {q:'Explain the electromagnetic spectrum. Describe the trend in wavelength and frequency across the spectrum, and give ONE specific use and ONE potential harm for TWO different types of EM radiation.',marks:5,hint:'List the types in order. Remember: short wavelength = high frequency = high energy. Pick two types and give use AND harm for each.',ans:'The Electromagnetic Spectrum:\nOrdered from longest wavelength to shortest (or lowest frequency to highest):\nRadio waves → Microwaves → Infrared → Visible light → Ultraviolet (UV) → X-rays → Gamma rays\n\nTrend:\n- Wavelength DECREASES across the spectrum from radio (longest, ~km) to gamma (shortest, ~10⁻¹² m)\n- Frequency INCREASES (radio = lowest ~10³ Hz; gamma = highest ~10²⁰ Hz)\n- Energy INCREASES with frequency (E ∝ f)\n- All types travel at 3 × 10⁸ m/s in a vacuum\n\nType 1 — Ultraviolet (UV):\nUse: Sterilisation of medical equipment and water; detecting forged banknotes (UV ink); production of Vitamin D in skin.\nHarm: Overexposure causes sunburn, premature ageing of skin, and increases the risk of skin cancer (melanoma) by damaging DNA in skin cells.\n\nType 2 — X-rays:\nUse: Medical imaging — X-rays pass through soft tissue but are absorbed by dense materials like bone, creating shadow images of fractures and internal structures.\nHarm: X-rays are ionising radiation — they carry enough energy to ionise atoms in cells and damage DNA, potentially causing mutations and increasing the risk of cancer with repeated exposure. This is why medical staff leave the room during X-rays.'},
+    ],
+    sum:`<b>🌊 Wave Types</b><br>Transverse: vibrate perpendicular (light, EM waves).<br>Longitudinal: vibrate parallel (sound — compressions + rarefactions).<br><br>
+<b>🌊 Key Properties & Formula</b><br>Amplitude → loudness/brightness. Frequency (Hz) → pitch/colour.<br>v = fλ (m/s). Period T = 1/f.<br><br>
+<b>🌊 Wave Behaviours</b><br>Reflection (angle in = angle out). Refraction (bends, speed changes). Diffraction (spreads through gaps).<br><br>
+<b>🌊 EM Spectrum</b><br>Radio → Microwave → Infrared → Visible → UV → X-ray → Gamma.<br>All at 3 × 10⁸ m/s in vacuum. Short λ = high f = high energy.<br><br>
+<b>🌊 Sound</b><br>Longitudinal. Needs medium. ~340 m/s in air. Pitch = frequency. Loudness = amplitude.`
+  },
+  {
+    id:8, emoji:'⚡', short:'Ch 8: Energy Efficiency',
+    title:'Chapter 8: Energy Efficiency',
+    color:'#FF6FA0', light:'#FFE8F2', dark:'#C0305A',
+    grad:'linear-gradient(135deg,#FF6FA0,#FFDD57)',
+    cards:[
+      {t:'Energy',d:'The capacity to do work. Measured in Joules (J). Cannot be created or destroyed — only transformed from one form to another.'},
+      {t:'Law of Conservation of Energy',d:'Energy cannot be created or destroyed; only converted from one form to another. Total energy in a closed system remains constant.'},
+      {t:'Efficiency',d:'Efficiency = (useful energy output ÷ total energy input) × 100%. No device is 100% efficient — energy is always wasted, usually as heat.'},
+      {t:'Useful energy',d:'Energy transferred to the intended purpose (e.g. light from a globe, kinetic energy from a motor). The "wanted" output.'},
+      {t:'Wasted energy',d:'Energy transferred to an unintended, less useful form — usually heat or sound through friction/resistance.'},
+      {t:'Energy transformation',d:'Conversion of energy from one form to another. Total energy is always conserved. E.g. Solar panel: light → electrical energy.'},
+      {t:'Sankey diagram',d:'A diagram showing energy transformations where arrow widths represent the relative amounts of each type of energy.'},
+      {t:'Power',d:'Rate of energy transfer. Power = Energy ÷ Time. Measured in Watts (W). 1 W = 1 J/s.'},
+      {t:'Work',d:'Work = Force × Distance (in direction of force). Measured in Joules. Work done = energy transferred.'},
+      {t:'Kinetic energy (KE)',d:'Energy of a moving object. KE = ½mv². Doubling speed quadruples KE. Doubling mass doubles KE.'},
+      {t:'Gravitational potential energy (GPE)',d:'Energy stored due to height above ground. GPE = mgh. Increases with mass, g, or height.'},
+      {t:'Thermal energy',d:'Total kinetic energy of all particles in a substance. Higher temperature = more thermal energy.'},
+      {t:'Conduction',d:'Heat transfer through solids by particle-to-particle vibration. Metals conduct well due to free electrons. No bulk movement.'},
+      {t:'Convection',d:'Heat transfer in fluids by bulk movement. Warm fluid rises, cool fluid sinks → convection currents.'},
+      {t:'Radiation',d:'Heat (infrared) transfer as EM waves. Does NOT need a medium — works through a vacuum (e.g. heat from the Sun).'},
+      {t:'Insulation',d:'Materials that reduce the rate of heat transfer. Good insulators have low thermal conductivity (e.g. fibreglass, air gaps, wool).'},
+      {t:'Renewable energy',d:'Energy from sources naturally replenished and will not run out: solar, wind, hydroelectric, geothermal, biomass.'},
+      {t:'Non-renewable energy',d:'Energy from sources that cannot be replenished on human timescales: coal, oil, natural gas (fossil fuels) and uranium.'},
+      {t:'Fossil fuels',d:'Non-renewable fuels (coal, oil, natural gas) formed from ancient organic matter over millions of years. Release CO₂ when burned.'},
+      {t:'Greenhouse effect',d:'Natural process where greenhouse gases (CO₂, CH₄, H₂O) absorb outgoing infrared radiation and re-emit it, warming Earth.'},
+      {t:'Carbon footprint',d:'Total greenhouse gas emissions (CO₂ equivalent) produced directly and indirectly by an individual, organisation or product.'},
+      {t:'Energy star rating',d:'Australian label system (1–10 stars) showing appliance efficiency. More stars = more efficient = less energy used for the same output.'},
+    ],
+    qs:[
+      {q:'A light bulb uses 100 J and produces 15 J of light. Its efficiency is:',o:['85%','15%','100%','150%'],a:1,e:'Efficiency = (useful output ÷ total input) × 100% = (15 ÷ 100) × 100% = 15%. The remaining 85 J is wasted as heat.'},
+      {q:'What does a Sankey diagram show?',o:['Speed of energy transfer','Energy transformations with arrow widths showing relative amounts','Temperature over time','Chemical formula of a fuel'],a:1,e:'Sankey diagrams show energy transfers — arrow widths are proportional to the amount of energy, clearly showing useful vs wasted energy.'},
+      {q:'The formula for gravitational potential energy is:',o:['GPE = ½mv²','GPE = mv','GPE = mgh','GPE = Fd'],a:2,e:'GPE = mgh (mass × gravitational field strength × height). As height increases, GPE increases. When falling, GPE converts to KE.'},
+      {q:'Heat transfer through solid walls is mainly by:',o:['Convection','Radiation','Conduction','Evaporation'],a:2,e:'Conduction transfers heat through solid walls by particle vibration. Insulation (e.g. fibreglass batts) traps still air, which is a poor conductor.'},
+      {q:'Which is classified as renewable?',o:['Coal','Natural gas','Nuclear (uranium)','Solar energy'],a:3,e:'Solar energy is continuously replenished by the Sun and will never run out on human timescales. Fossil fuels and uranium are finite.'},
+      {q:'Power is defined as:',o:['Energy × time','Force × distance','Energy ÷ time','Mass × acceleration'],a:2,e:'Power = Energy ÷ Time (Watts). 1 W = 1 J/s. A 2000 W heater uses 2000 J of energy every second.'},
+      {q:'The greenhouse effect is caused by:',o:['The ozone layer reflecting sunlight','Greenhouse gases absorbing and re-emitting infrared radiation','UV radiation heating the ground','Nuclear power plants'],a:1,e:'Greenhouse gases (CO₂, CH₄, H₂O vapour) absorb infrared radiation from Earth\'s surface and re-emit it back, trapping heat and warming the planet.'},
+      {q:'When a ball rolls to a stop due to friction, its KE converts to:',o:['Gravitational potential energy','Electrical energy','Thermal energy (heat)','Sound energy only'],a:2,e:'Friction converts kinetic energy to thermal energy (heat). Energy is conserved but becomes less useful. Some sound may also be produced.'},
+      {q:'A 10-star energy rating compared to a 2-star rating means:',o:['The appliance is heavier','Uses significantly less energy for the same output','More expensive to run','Produces more heat'],a:1,e:'More stars = more energy efficient = less electricity needed for the same output. This saves money and reduces greenhouse gas emissions.'},
+      {q:'Conduction, convection and radiation are all:',o:['Ways of generating electricity','Methods of heat transfer','Types of wave propagation','Methods of increasing efficiency'],a:1,e:'All three are mechanisms of heat transfer. Conduction = through solids; Convection = through fluids (bulk movement); Radiation = EM waves (no medium needed).'},
+    ],
+    sa:[
+      {q:'A household heater has a power rating of 2000 W and is used for 3 hours. Calculate the total energy used (in joules and in kilowatt-hours). Show all working.',marks:3,hint:'Energy = Power × Time. Be careful with units — convert hours to seconds for joules, or keep in hours for kWh.',ans:'Part 1: Energy in Joules\nPower = 2000 W = 2000 J/s\nTime = 3 hours = 3 × 60 × 60 = 10,800 seconds\nEnergy = Power × Time = 2000 × 10,800 = 21,600,000 J = 2.16 × 10⁷ J\n\nPart 2: Energy in kilowatt-hours (kWh)\nPower = 2000 W = 2 kW\nTime = 3 hours\nEnergy = Power × Time = 2 kW × 3 h = 6 kWh\n\n(Note: 1 kWh = 3,600,000 J = 3.6 × 10⁶ J\nCheck: 6 × 3,600,000 = 21,600,000 J ✓)\n\nIf electricity costs 30 cents per kWh: Cost = 6 × $0.30 = $1.80 for 3 hours of use.'},
+      {q:'Explain the difference between conduction, convection and radiation as methods of heat transfer. For each, state whether it requires a medium to transfer heat, and give one practical example.',marks:5,hint:'Three separate methods — describe the mechanism for each. Think: particles vibrating? Fluid moving? Waves?',ans:'Conduction:\n- Mechanism: Heat is transferred through a solid material by particle vibrations. When one end is heated, particles vibrate faster and pass energy to neighbouring particles along the material. In metals, free electrons also carry energy rapidly, making metals excellent conductors.\n- Requires a medium: YES — requires direct particle-to-particle contact (solids, especially metals).\n- Example: A metal spoon in hot soup conducts heat to your hand. Heat travels through the wall of a house on a cold day. A saucepan base conducts heat from the stove to food.\n\nConvection:\n- Mechanism: Heat is transferred in fluids (liquids and gases) by the bulk movement of the fluid itself. Warm fluid is less dense and rises; cooler fluid sinks to replace it, forming circular convection currents.\n- Requires a medium: YES — requires a fluid (liquid or gas) that can flow.\n- Example: Heating a room with a radiator — hot air rises from the radiator, cool air from the floor is drawn in; convection currents circulate warm air around the room. Boiling water. Ocean currents. Atmospheric circulation.\n\nRadiation:\n- Mechanism: Heat (thermal energy) is transferred as infrared electromagnetic waves. No particles are needed — energy travels as waves through empty space.\n- Requires a medium: NO — can travel through a vacuum.\n- Example: Heat from the Sun reaches Earth across the vacuum of space. Sitting near a campfire you feel warmth even without touching it. Infrared heaters in restaurants. The grill of an oven.'},
+      {q:'A 5 kg ball is dropped from a height of 20 m. Using the law of conservation of energy, calculate:\na) The gravitational potential energy at the top\nb) The kinetic energy just before it hits the ground (ignoring air resistance)\nc) The speed of the ball just before impact\n(Use g = 10 m/s²)',marks:4,hint:'GPE = mgh. At the bottom, all GPE has converted to KE. Then use KE = ½mv² to find speed.',ans:'a) Gravitational Potential Energy at the top:\nGPE = mgh\nGPE = 5 × 10 × 20\nGPE = 1000 J\n\nb) Kinetic Energy just before hitting the ground:\nBy the Law of Conservation of Energy (ignoring air resistance):\nAll GPE at the top has converted to KE at the bottom.\nKE = GPE = 1000 J\n\nc) Speed just before impact:\nKE = ½mv²\n1000 = ½ × 5 × v²\n1000 = 2.5 × v²\nv² = 1000 ÷ 2.5 = 400\nv = √400 = 20 m/s\n\nSo the ball hits the ground at 20 m/s.\n(Check using kinematics: v² = u² + 2as = 0 + 2×10×20 = 400, v = 20 m/s ✓)'},
+      {q:'Explain what is meant by energy efficiency and describe THREE specific strategies that Australian households could use to improve their energy efficiency and reduce their carbon footprint.',marks:4,hint:'Define efficiency first. Then think: insulation, appliances, solar, lights, behaviour changes...',ans:'Energy Efficiency:\nEfficiency = (useful energy output ÷ total energy input) × 100%. A more efficient device produces more useful output for the same input — wasting less energy as heat or sound. No device is perfectly efficient (100%) due to friction, resistance and heat losses.\n\nThree strategies for Australian households:\n\n1. Installing roof and wall insulation:\nInsulation (e.g. fibreglass batts, bulk insulation) reduces heat conduction and convection through walls and ceilings. In summer it reduces heat entering the home (less air conditioning needed); in winter it reduces heat escaping (less heating needed). This directly reduces energy consumption and electricity bills while lowering CO₂ emissions from power generation.\n\n2. Choosing appliances with high energy star ratings:\nAppliances with more stars (e.g. 9–10 star fridges, washing machines, air conditioners) use significantly less electricity than lower-rated equivalents. Replacing old, inefficient appliances with high-rated models reduces ongoing electricity use. In Australia, the mandatory energy rating label helps consumers compare appliances.\n\n3. Installing rooftop solar panels:\nPhotovoltaic (PV) solar panels convert sunlight directly into electrical energy, reducing reliance on coal-fired grid electricity. Any excess electricity can be fed back to the grid (feed-in tariff), further reducing costs. Solar energy is renewable, produces no direct CO₂ emissions during use, and reduces a household\'s carbon footprint significantly over its lifetime.'},
+      {q:'Draw and label a Sankey diagram for a petrol car engine that uses 1000 J of chemical energy (fuel) and produces 250 J of kinetic energy (motion), 600 J of heat energy, and 150 J of sound energy. Then calculate the efficiency of the engine.',marks:3,hint:'In a Sankey diagram, the total input arrow splits into output arrows. Widths must be proportional to energy amounts.',ans:'Sankey Diagram Description:\n- One wide input arrow on the left labelled: "Chemical energy (fuel) = 1000 J"\n- This splits into THREE output arrows on the right:\n  • A narrow arrow labelled: "Kinetic energy (motion) = 250 J" (useful output)\n  • A wide arrow labelled: "Heat energy = 600 J" (wasted)\n  • A thin arrow labelled: "Sound energy = 150 J" (wasted)\n- Check: 250 + 600 + 150 = 1000 J ✓ (energy is conserved)\n- The widths of the arrows should be proportional: heat arrow is widest, kinetic is narrower, sound is thinnest.\n\nEfficiency Calculation:\nEfficiency = (useful energy output ÷ total energy input) × 100%\nEfficiency = (250 ÷ 1000) × 100%\nEfficiency = 25%\n\nThis means only 25% of the fuel\'s energy is used for useful motion — 75% is wasted as heat and sound. Modern petrol engines are typically 20–40% efficient. Electric motors are typically 85–95% efficient.'},
+      {q:'Discuss the advantages and disadvantages of renewable energy sources compared to fossil fuels. In your answer, refer to at least TWO specific renewable sources and consider environmental, economic and reliability factors.',marks:5,hint:'Structure: intro, 2+ renewable sources (pros and cons each), fossil fuels comparison, conclusion. Cover environment, cost and reliability.',ans:'Fossil fuels (coal, oil, natural gas) currently supply the majority of Australia\'s energy. However, they are non-renewable, release CO₂ when burned, and contribute to the enhanced greenhouse effect and climate change.\n\nRenewable Energy Source 1 — Solar Power:\nAdvantages:\n- Free and inexhaustible fuel source — Australia receives abundant sunlight\n- Zero greenhouse gas emissions during operation\n- Declining costs — rooftop solar is now cost-competitive with grid electricity\n- Can be distributed (individual homes) or utility-scale\n\nDisadvantages:\n- Intermittent — does not generate electricity at night or on heavily overcast days\n- Requires battery storage or grid backup for continuous supply\n- Manufacturing solar panels requires energy and materials (environmental cost)\n- Large land area needed for utility-scale farms\n\nRenewable Energy Source 2 — Wind Power:\nAdvantages:\n- Zero emissions during operation; minimal land footprint (farms can coexist with agriculture)\n- Cost of wind power has decreased dramatically — now cheapest form of new electricity generation in Australia\n\nDisadvantages:\n- Intermittent — wind is variable and unpredictable\n- Can cause noise and visual impact; some concerns about bird/bat mortality\n- Best resources are in remote areas, requiring transmission infrastructure\n\nComparison with Fossil Fuels:\n- Fossil fuels provide reliable, despatchable power (can generate on demand, 24/7) — a major advantage\n- However, they release CO₂ and other pollutants (NOₓ, SO₂), contributing to climate change and air pollution\n- Fossil fuels are finite — prices will rise as reserves deplete\n- Renewable energy is becoming more reliable with battery storage and grid improvements\n\nConclusion: Transitioning to renewables reduces environmental impacts and long-term fuel costs, but requires investment in storage and grid infrastructure to ensure reliability.'},
+    ],
+    sum:`<b>⚡ Energy Efficiency</b><br>Efficiency = (useful output ÷ total input) × 100%.<br>No device is 100% efficient — energy always wasted as heat.<br>Sankey diagrams show transformations visually.<br><br>
+<b>⚡ Key Formulas</b><br>• KE = ½mv²  • GPE = mgh  • Work = Fd (all in Joules)<br>• Power = Energy ÷ Time (Watts, W)<br><br>
+<b>⚡ Heat Transfer</b><br>Conduction: solids (particle vibrations, needs medium).<br>Convection: fluids (bulk movement, needs medium).<br>Radiation: EM waves — NO medium needed.<br><br>
+<b>⚡ Energy Sources</b><br>Renewable: solar, wind, hydro, geothermal, biomass.<br>Non-renewable: coal, oil, gas, uranium.<br>Fossil fuels → CO₂ → enhanced greenhouse effect → climate change.<br><br>
+<b>⚡ Sustainability</b><br>Star ratings: more stars = more efficient. Reduce carbon footprint through efficiency, renewables and insulation.`
+  }
+];
+
+let fcCh=0,fcIdx=0,fcFlipped=false;
+let pqCh=0, saCh=0, sumCh=0;
+let answered={},correct=0,total=0;
+let saRevealed={};
+
+function init(){
+  ['fc','pq','sa','sum'].forEach(p=>{
+    const nav=document.getElementById(p+'-nav');
+    if(!nav) return;
+    nav.innerHTML=DATA.map((ch,i)=>`
+      <button class="ch-btn" id="${p}-btn-${i}"
+        style="color:${ch.dark};background:${ch.light};border-color:${ch.color}"
+        onclick="sel('${p}',${i})">${ch.emoji} ${ch.short}</button>
+    `).join('');
+  });
+  selFc(0); selPq(0); selSa(0); selSum(0);
+}
+
+function sel(p,i){
+  if(p==='fc') selFc(i);
+  else if(p==='pq') selPq(i);
+  else if(p==='sa') selSa(i);
+  else selSum(i);
+}
+
+function activateBtn(p,i){
+  DATA.forEach((_,j)=>{
+    const b=document.getElementById(p+'-btn-'+j);
+    if(!b) return;
+    const ch=DATA[j];
+    if(j===i){b.style.background=ch.color;b.style.color='#fff';b.style.borderColor=ch.dark;b.style.transform='scale(1.08)';}
+    else{b.style.background=ch.light;b.style.color=ch.dark;b.style.borderColor=ch.color;b.style.transform='scale(1)';}
+  });
+}
+
+function switchTab(t,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  btn.classList.add('active');
+}
+
+function selFc(i){fcCh=i;fcIdx=0;fcFlipped=false;activateBtn('fc',i);renderFc();}
+function renderFc(){
+  const ch=DATA[fcCh],cards=ch.cards,c=cards[fcIdx];
+  document.getElementById('fc-ch-title').innerHTML=`<span class="ch-badge" style="background:${ch.light};color:${ch.dark}">${ch.emoji} Ch ${ch.id}</span> ${ch.title}`;
+  document.getElementById('fc-prog').style.width=((fcIdx+1)/cards.length*100)+'%';
+  document.getElementById('fc-counter').textContent=(fcIdx+1)+' / '+cards.length;
+  const card=document.getElementById('fc-card');
+  card.classList.remove('flipped'); fcFlipped=false;
+  document.getElementById('fc-emoji').textContent=ch.emoji;
+  document.getElementById('fc-term').textContent=c.t;
+  document.getElementById('fc-def').textContent=c.d;
+  document.getElementById('fc-back').style.background=ch.grad;
+  card.classList.add('pop'); setTimeout(()=>card.classList.remove('pop'),400);
+}
+function flipCard(){fcFlipped=!fcFlipped;document.getElementById('fc-card').classList.toggle('flipped',fcFlipped);}
+function nextCard(){fcIdx=(fcIdx+1)%DATA[fcCh].cards.length;renderFc();}
+function prevCard(){fcIdx=(fcIdx-1+DATA[fcCh].cards.length)%DATA[fcCh].cards.length;renderFc();}
+function rateCard(r){
+  const back=document.getElementById('fc-back');
+  back.style.background=r>=3?'linear-gradient(135deg,#1DD1A1,#48DBFB)':'linear-gradient(135deg,#FF6B6B,#FF9F43)';
+  setTimeout(nextCard,500);
+}
+
+function selPq(i){pqCh=i;activateBtn('pq',i);renderPq();}
+function renderPq(){
+  const ch=DATA[pqCh];
+  let html=`<div class="ch-title"><span class="ch-badge" style="background:${ch.light};color:${ch.dark}">${ch.emoji} Ch ${ch.id}</span> ${ch.title}</div>`;
+  ch.qs.forEach((q,qi)=>{
+    const key=pqCh+'_'+qi,ans=answered[key];
+    html+=`<div class="q-card">
+      <div class="q-num" style="color:${ch.color}">Question ${qi+1} of ${ch.qs.length}</div>
+      <div class="q-text">${q.q}</div>
+      <div class="q-opts">
+        ${q.o.map((opt,oi)=>{
+          let cls='';
+          if(ans!==undefined){if(oi===q.a)cls='correct';else if(oi===ans)cls='wrong';}
+          return`<button class="q-opt ${cls}" ${ans!==undefined?'disabled':''} onclick="ansQ(${pqCh},${qi},${oi})">
+            <span class="opt-letter">${'ABCD'[oi]}</span>${opt}
+          </button>`;
+        }).join('')}
+      </div>
+      <div class="q-exp ${ans!==undefined?'show':''}">
+        <div class="exp-label">💡 Explanation</div>${q.e}
+      </div>
+    </div>`;
+  });
+  document.getElementById('pq-container').innerHTML=html;
+  document.getElementById('pq-score').textContent=correct+' / '+total;
+  document.getElementById('pq-correct').textContent=correct;
+}
+function ansQ(ci,qi,oi){
+  const key=ci+'_'+qi;
+  if(answered[key]!==undefined) return;
+  answered[key]=oi;
+  if(oi===DATA[ci].qs[qi].a) correct++;
+  total++;
+  renderPq();
+}
+function resetQuiz(){answered={};correct=0;total=0;renderPq();}
+
+function selSa(i){saCh=i;activateBtn('sa',i);renderSa();}
+function renderSa(){
+  const ch=DATA[saCh];
+  let html=`<div class="ch-title"><span class="ch-badge" style="background:${ch.light};color:${ch.dark}">${ch.emoji} Ch ${ch.id}</span> ${ch.title}</div>`;
+  ch.sa.forEach((q,qi)=>{
+    const key=saCh+'_'+qi;
+    const rev=saRevealed[key];
+    const hintKey=key+'_hint';
+    const hintShown=saRevealed[hintKey];
+    html+=`<div class="sa-card">
+      <div class="sa-q-num" style="color:${ch.color}">
+        Short Answer Q${qi+1}
+        <span class="sa-marks">${q.marks} mark${q.marks>1?'s':''}</span>
+      </div>
+      <div class="sa-question">${q.q}</div>
+      <textarea class="sa-textarea" id="sa-ta-${key}" placeholder="Write your answer here… 📝" rows="4"></textarea>
+      <div class="sa-btn-row">
+        <button class="sa-reveal-btn" onclick="toggleHint('${key}')"
+          style="background:${ch.light};color:${ch.dark};border-color:${ch.color}">
+          ${hintShown?'🙈 Hide Hint':'💡 Show Hint'}
+        </button>
+        <button class="sa-reveal-btn" onclick="revealAns('${key}')"
+          style="background:${ch.color};color:#fff;border-color:${ch.dark}">
+          ${rev?'✅ Hide Answer':'🔍 Reveal Answer'}
+        </button>
+      </div>
+      <div class="sa-hint ${hintShown?'show':''}" id="sa-hint-${key}">
+        <strong>💡 Hint:</strong> ${q.hint}
+      </div>
+      <div class="sa-answer ${rev?'show':''}" id="sa-ans-${key}"
+        style="background:${ch.light};border-left:4px solid ${ch.color};color:${ch.dark}">
+        <div class="sa-answer-label" style="color:${ch.color}">✅ Sample Answer (${q.marks} marks)</div>
+        ${q.ans.replace(/\n/g,'<br>')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('sa-container').innerHTML=html;
+}
+function revealAns(key){
+  saRevealed[key]=!saRevealed[key];
+  renderSa();
+}
+function toggleHint(key){
+  const hintKey=key+'_hint';
+  saRevealed[hintKey]=!saRevealed[hintKey];
+  renderSa();
+}
+
+function selSum(i){sumCh=i;activateBtn('sum',i);renderSum();}
+function renderSum(){
+  const ch=DATA[sumCh];
+  let html=`<div class="sum-card" style="border-top:5px solid ${ch.color}">
+    <div class="sum-title" style="color:${ch.dark}">${ch.emoji} ${ch.title}</div>
+    <div class="sum-body">${ch.sum}</div>
+  </div>
+  <div class="sum-card">
+    <div class="ch-title" style="color:${ch.dark};font-size:15px">🃏 Key Terms — ${ch.cards.length} terms</div>
+    <div class="term-grid">
+      ${ch.cards.map(c=>`
+        <div class="term-row" style="background:${ch.light};border-color:${ch.color}">
+          <span class="term-name" style="color:${ch.dark}">${c.t}</span>
+          <span style="font-size:12px;color:var(--muted)"> — </span>
+          <span class="term-def">${c.d}</span>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+  document.getElementById('sum-content').innerHTML=html;
+}
+
+init();
+</script>
+</body>
+</html>
